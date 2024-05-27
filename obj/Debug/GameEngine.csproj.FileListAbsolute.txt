@@ -11,3 +11,16 @@ C:\Users\Thrasher\source\repos\GameEngine\bin\Debug\Res\Sprites\player_down.png
 C:\Users\Thrasher\source\repos\GameEngine\bin\Debug\Res\Sprites\player_left.png
 C:\Users\Thrasher\source\repos\GameEngine\bin\Debug\Res\Sprites\player_right.png
 C:\Users\Thrasher\source\repos\GameEngine\bin\Debug\Res\Sprites\player_up.png
+C:\Users\Thrasher\source\repos\2D-game-engine\bin\Debug\Res\Sprites\player.png
+C:\Users\Thrasher\source\repos\2D-game-engine\bin\Debug\Res\Sprites\player_down.png
+C:\Users\Thrasher\source\repos\2D-game-engine\bin\Debug\Res\Sprites\player_left.png
+C:\Users\Thrasher\source\repos\2D-game-engine\bin\Debug\Res\Sprites\player_right.png
+C:\Users\Thrasher\source\repos\2D-game-engine\bin\Debug\Res\Sprites\player_up.png
+C:\Users\Thrasher\source\repos\2D-game-engine\bin\Debug\Res\Sprites\slime.png
+C:\Users\Thrasher\source\repos\2D-game-engine\bin\Debug\GameEngine.exe.config
+C:\Users\Thrasher\source\repos\2D-game-engine\bin\Debug\GameEngine.exe
+C:\Users\Thrasher\source\repos\2D-game-engine\bin\Debug\GameEngine.pdb
+C:\Users\Thrasher\source\repos\2D-game-engine\obj\Debug\GameEngine.csproj.AssemblyReference.cache
+C:\Users\Thrasher\source\repos\2D-game-engine\obj\Debug\GameEngine.csproj.CoreCompileInputs.cache
+C:\Users\Thrasher\source\repos\2D-game-engine\obj\Debug\GameEngine.exe
+C:\Users\Thrasher\source\repos\2D-game-engine\obj\Debug\GameEngine.pdb

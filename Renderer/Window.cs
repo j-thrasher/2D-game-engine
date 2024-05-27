@@ -8,6 +8,8 @@ using System.Drawing;
 using System.Threading;
 using System.Drawing.Drawing2D;
 using GameEngine.DataEngine;
+using System.CodeDom;
+using System.Windows.Controls;
 
 
 
@@ -37,8 +39,6 @@ namespace GameEngine.Renderer {
 
     public abstract class Window {
 
-
-
         //form vars
         private String Title;
         private Vector2D ScreenSize;
@@ -48,8 +48,8 @@ namespace GameEngine.Renderer {
         public Boolean Debug = true;
         public Boolean FullScreen = true;
         public static int TicksPerSecond = 50;
-        public static int FramesPerSecond = 100;
-
+        public readonly int FramesPerSecond = 100;
+        public int DisplayRefreshRate = 0;
 
         //runtime logic
         private Thread RenderThread = null;
@@ -60,8 +60,7 @@ namespace GameEngine.Renderer {
         private Player PlayerRef;
         public static float SimulationDistance = 300f;
         public static float RenderDistance = 500f;
-
-
+        public readonly float MAX_SERIES_UPDATE_TIME = 500f;
 
         //render layers
         //private Dictionary<int, Dictionary<String, Player>> Players = new Dictionary<int, Dictionary<String, Player>>();
@@ -92,9 +91,9 @@ namespace GameEngine.Renderer {
 
 
         //debug vars
-        public Dictionary<String, Series> DebugSeries = new Dictionary<String, Series>();
+        private Dictionary<String, Series> DebugSeries = new Dictionary<String, Series> ();
         public static Color DebugColor = Color.FromArgb(255, 0, 255);
-        public static Color DebugBackGroundColor = Color.FromArgb(28, 0, 47);
+        public static Color DebugBackGroundColor = Color.FromArgb(0, 0, 0);
         public static Font debugFont = new Font("Consolas", 24, FontStyle.Regular, GraphicsUnit.Pixel);
 
         public static Pen DebugPen = new Pen(DebugColor);
@@ -108,6 +107,7 @@ namespace GameEngine.Renderer {
             if (this.ScreenSize.LessThan(new Vector2D(400, 300))) {
                 ScreenSize = new Vector2D(400, 300);
             }
+            //this.DisplayRefreshRate = DisplayMode.RefreshRate;
 
             this.Canvas = new Canvas();
 
@@ -117,21 +117,18 @@ namespace GameEngine.Renderer {
             Canvas.KeyDown += HandleKeyDown;
             Canvas.KeyUp += HandleKeyUp;
             Canvas.FormClosed += new FormClosedEventHandler(this.Exit);
-            Canvas.MinimumSize = new Size(400, 300);
-            Canvas.StartPosition = FormStartPosition.CenterScreen;
             Canvas.Text = Title;
-            if (FullScreen) Canvas.FormBorderStyle = FormBorderStyle.None;
-            this.Cam = new Camera(new Vector2D(0, 0), ScreenSize);
+            Canvas.Resize += HandleResize;
+            HandleGoFullScreen();
+           
 
-            Screen s = Screen.FromControl(getScreenControl());
-            Console.WriteLine(s.ToString());
 
 
             //add the debug info to the series counter
-            this.DebugSeries.Add("Render", new Series("Render"));
+            AddDebugSeries("Render");
             this.FrameRateSeries = new Series("Frames");
-            this.DebugSeries.Add("Update", new Series("Update"));
-            this.DebugSeries.Add("MSPT", new Series("MSPT"));
+            AddDebugSeries("Update");
+            AddDebugSeries("MSPT");
 
 
             //run onload stuff
@@ -139,8 +136,11 @@ namespace GameEngine.Renderer {
 
             //create the threads, and start them
             UpdateThread = new Thread(UpdateTick);
+            Thread.Sleep(new TimeSpan(1000L));
             DebugThread = new Thread(DebugUpdate);
+            Thread.Sleep(new TimeSpan(1000L));
             RenderThread = new Thread(RenderUpdate);
+            Thread.Sleep(new TimeSpan(1000L));
             UpdateThread.Start();
             DebugThread.Start();
             RenderThread.Start();
@@ -152,11 +152,36 @@ namespace GameEngine.Renderer {
         public abstract void Onload();
         public abstract void OnUpdate();
 
+        public void AddDebugSeries(String SeriesName) {
+            Console.WriteLine($"Added debug series: {SeriesName}");
+            this.DebugSeries.Add(SeriesName, new Series(SeriesName));
+        }
+
+        public void AddDebugSeriesTiming(String SeriesName, long Before, long After) {
+            if (!this.DebugSeries.ContainsKey(SeriesName)) {
+                AddDebugSeries(SeriesName);
+            }
+
+            if(Before > After) {
+                long temp = Before;
+                Before = After;
+                After = temp;
+            }
+
+            float DeltaTime = ((After - Before) / 10000f);
+
+            if(DeltaTime > MAX_SERIES_UPDATE_TIME) {
+                return;
+            }
+
+            this.DebugSeries[SeriesName].Add(DeltaTime);
+        }
+
         public Vector2D GetScreenSize() {
             return this.ScreenSize;
         }
 
-        public Control getScreenControl() {
+        public Canvas GetScreenControl() {
             return this.Canvas;
         }
 
@@ -169,8 +194,49 @@ namespace GameEngine.Renderer {
             return (this.Keyboard.ContainsKey(keyCode) ? Keyboard[keyCode] : false);
         }
 
+        private long LastResize = Util.nanoTime();
+        private long ResizeCoolMillis = 100;
+        public void HandleResize(object sender, EventArgs e) {
+            long now = Util.nanoTime();
+            int MillisSinceLastResize = (int) ((now - LastResize) / 10000f);
+            if(MillisSinceLastResize >= ResizeCoolMillis) {
+                LastResize = now;
+
+                HandleCameraMove();
+                Console.WriteLine($"Resizing");
+            }
+        }
+
+        public void HandleCameraMove() {
+
+            this.Cam = new Camera(new Vector2D(0, 0), new Vector2D(this.Canvas.Size.Width, this.Canvas.Size.Height));
+        }
+ 
+
+        public void HandleGoFullScreen() {
+            Screen s = Screen.FromControl(GetScreenControl());
+            if (FullScreen) {
+                Canvas.FormBorderStyle = FormBorderStyle.None;
+                Canvas.ClientSize = new System.Drawing.Size(Screen.PrimaryScreen.WorkingArea.Width, Screen.PrimaryScreen.WorkingArea.Height + 1000);
+                Canvas.StartPosition = FormStartPosition.Manual;
+                Canvas.Location = new Point(Screen.PrimaryScreen.WorkingArea.Left, Screen.PrimaryScreen.WorkingArea.Top);
+                Canvas.SetDesktopLocation(0, 0);
+            } else {
+                Canvas.ClientSize = new Size(400, 300);
+                Canvas.StartPosition = FormStartPosition.CenterScreen;
+                Canvas.SetDesktopLocation(0, 0);
+                Canvas.FormBorderStyle = FormBorderStyle.Sizable;
+            }
+            HandleCameraMove();
+            Console.WriteLine(s.ToString());
+        }
+
         public void HandleKeyDown(object sender, KeyEventArgs e) {
             String key = e.KeyCode + "";
+            if(key.Equals("F11")) {
+                this.FullScreen = !this.FullScreen;
+                HandleGoFullScreen();
+            }
             if (this.Keyboard.ContainsKey(key)) {
                 this.Keyboard[key] = true;
             } else {
@@ -197,18 +263,19 @@ namespace GameEngine.Renderer {
                 try {
 
                     long now = Util.nanoTime();
-                    beforeUpdate = now;
                     if (now > minNextNanoTime) {
+
+                        beforeUpdate = now;
                         minNextNanoTime = now + millisPerTick;
 
                         OnUpdate();
 
                         long afterCall = Util.nanoTime();
-
-                        this.DebugSeries["Update"].Add((afterCall - beforeUpdate) / 10000f);
+                        this.AddDebugSeriesTiming("Update", beforeUpdate, afterCall);
                     }
                     afterUpdate = Util.nanoTime();
-                    this.DebugSeries["MSPT"].Add((afterUpdate - beforeUpdate) / 10000f);
+
+                    this.AddDebugSeriesTiming("MSPT", beforeUpdate, afterUpdate);
 
 
                     //this is to limit loops on the cpu
@@ -217,7 +284,7 @@ namespace GameEngine.Renderer {
                     Thread.Sleep(new TimeSpan(1000L));
 
 
-                } catch(Exception e) { Console.WriteLine($"Error in Logic Loop: {e.Message}"); }
+                } catch(Exception e) { Console.WriteLine($"Error in UpdateTick Loop: {e.Message}"); }
             }
         }
 
@@ -242,10 +309,10 @@ namespace GameEngine.Renderer {
 
                         this.FrameRateSeries.Add();
                         long afterCall = Util.nanoTime();
-                        this.DebugSeries["Render"].Add((afterCall - beforeUpdate) / 10000f);
+                        this.AddDebugSeriesTiming("Render", beforeUpdate, afterUpdate);
                     }
                     afterUpdate = Util.nanoTime();
-                    this.DebugSeries["MSPT"].Add((afterUpdate - beforeUpdate) / 10000f);
+                    this.AddDebugSeriesTiming("MSPT", beforeUpdate, afterUpdate);
 
 
                     //this is to limit loops on the cpu
@@ -253,7 +320,7 @@ namespace GameEngine.Renderer {
                     //this isnt added to the MSPT/UPDATE timing in debug mode
                     Thread.Sleep(new TimeSpan(1000L));
 
-                } catch (Exception e) { Console.WriteLine($"Error in Logic Loop: {e.Message}"); }
+                } catch (Exception e) { Console.WriteLine($"Error in RenderUpdate Loop: {e.Message}"); }
 
             }
         }
@@ -322,7 +389,12 @@ namespace GameEngine.Renderer {
             foreach(int Layer in Entities.Keys.ToList()) {
                 List<Entity> LayersEntities = Entities[Layer].Values.ToList();
                 foreach (Entity ee in LayersEntities) {
-                    if (this.Cam.Position.Distance(new Vector2D(ee.Position.X - this.PlayerRef.SpriteXOffset(), ee.Position.Y - this.PlayerRef.SpriteYOffset())) < Window.RenderDistance) {
+                    float EntitiesRelativeX = ee.Position.X - ee.SpriteXOffset();
+                    float EntitiesRelativeY = ee.Position.Y - ee.SpriteYOffset();
+                    g.DrawRectangle(DebugPen, new Rectangle((int)(EntitiesRelativeX - 10 - this.PlayerRef.SpriteYOffset()), (int)(EntitiesRelativeY - 10 - this.PlayerRef.SpriteXOffset()), 20, 20));
+
+
+                    if (this.Cam.Position.Distance(new Vector2D(EntitiesRelativeX - this.PlayerRef.SpriteXOffset(), EntitiesRelativeY - this.PlayerRef.SpriteYOffset())) < Window.RenderDistance) {
                         
                         switch (ee.Tag) {
                             case ("Mob"):
@@ -337,9 +409,6 @@ namespace GameEngine.Renderer {
             if (this.PlayerRef != null) {
                 renderPlayer(this.PlayerRef);
             }
-
-
-
 
             if (Debug) {
 
@@ -383,16 +452,28 @@ namespace GameEngine.Renderer {
                 int MiddleScreenY = (int)(ScreenSize.Y / 2);
                 int SpriteOffsetX = (int)(s.Sprite.Width * s.XScale) / 2;
                 int SpriteOffsetY = (int)(s.Sprite.Height * s.XScale) / 2;
-                g.DrawImage(s.Sprite, MiddleScreenX - SpriteOffsetX, MiddleScreenY - SpriteOffsetY, s.Sprite.Width * s.XScale, s.Sprite.Height * s.YScale);
+
+                float XOffset = this.Cam.XOffset() - this.PlayerRef.SpriteXOffset();
+                float YOffset = this.Cam.YOffset() - this.PlayerRef.SpriteYOffset();
+
+                //g.DrawImage(s.Sprite, MiddleScreenX - SpriteOffsetX, MiddleScreenY - SpriteOffsetY, s.Sprite.Width * s.XScale, s.Sprite.Height * s.YScale);
+                g.DrawImage(s.Sprite, XOffset + p.Position.X, YOffset + p.Position.Y, s.Sprite.Width * s.XScale, s.Sprite.Height * s.YScale);
                 if (Debug) {
 
-                    float XOffset = this.Cam.XOffset() - this.PlayerRef.SpriteXOffset();
-                    float YOffset = this.Cam.YOffset() - this.PlayerRef.SpriteYOffset();
                     PointF[] hitBox = p.GetGlobalHitbox(XOffset, YOffset).GetPoints();
                     if (hitBox.Length > 0) {
                         g.DrawPolygon(DebugPen, hitBox); 
                         //g.DrawRectangle(DebugPen, s.GetGlobalBoundingBox());
                     }
+
+
+
+                    Polygon2D polygon = Polygon2D.GenerateVariableResolutionCirclePoly(12, Window.RenderDistance);
+                    PointF[] RenderDistanceDebugPoints = polygon.GetRelativePolygon(XOffset + p.Position.X, YOffset + p.Position.Y).GetPoints();
+                    g.DrawPolygon(DebugPen, RenderDistanceDebugPoints);
+
+
+
                     //g.DrawEllipse(DebugPen, new Rectangle((int) (MiddleScreenX - SpriteOffsetX - (Window.SimulationDistance/2)), (int) (MiddleScreenY - SpriteOffsetY - (Window.SimulationDistance / 2)), (int) Window.SimulationDistance, (int) Window.SimulationDistance));
                     //g.DrawRectangle(DebugPen, new Rectangle(MiddleScreenX - SpriteOffsetX, MiddleScreenY - SpriteOffsetY, s.Sprite.Width * s.XScale, s.Sprite.Height * s.YScale));
                 }

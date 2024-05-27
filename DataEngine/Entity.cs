@@ -156,6 +156,10 @@ namespace GameEngine.DataEngine {
             return (this.Sprite.Sprite.Height * this.Sprite.YScale) / 2;
         }
 
+        public Vector2D GetCenterOfEntityInSpace(float XOffset, float YOffset) {
+            return new Vector2D(XOffset - this.SpriteXOffset(), YOffset - SpriteYOffset());
+        }
+
 
         public Polygon2D GetGlobalHitbox(float XOffset, float YOffset) {
             List<PointF> points = GetSprite().GeneratedHitBox().GetPointList();

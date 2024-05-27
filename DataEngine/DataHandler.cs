@@ -22,9 +22,9 @@ namespace GameEngine.DataEngine {
             playerHander = new PlayerHandler(W);
             AddEntity(this.GetPlayer());
 
-            this.DebugSeries.Add("PlayerHandler", new Series("PlayerHandler"));
-            this.DebugSeries.Add("SpriteUpdates", new Series("SpriteUpdates"));
-            this.DebugSeries.Add("Collisions", new Series("Collisions"));
+            this.W.AddDebugSeries("PlayerHandler");
+            this.W.AddDebugSeries("SpriteUpdates");
+            this.W.AddDebugSeries("Collisions");
 
 
 
@@ -86,9 +86,11 @@ namespace GameEngine.DataEngine {
             HandleCollisions();
             long afterCollisions = Util.nanoTime();
 
-            this.DebugSeries["PlayerHandler"].Add(beforeSpriteUpdates - beforePlayerHandler);
-            this.DebugSeries["SpriteUpdates"].Add(beforeCollisions - beforeSpriteUpdates);
-            this.DebugSeries["Collisions"].Add(afterCollisions - beforeCollisions);
+            this.W.AddDebugSeriesTiming("PlayerHandler", beforePlayerHandler, beforeSpriteUpdates);
+            this.W.AddDebugSeriesTiming("SpriteUpdates", beforeSpriteUpdates, beforeCollisions);
+            this.W.AddDebugSeriesTiming("Collisions", beforeCollisions, afterCollisions);
+
+
         }
 
 

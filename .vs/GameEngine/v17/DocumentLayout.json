@@ -1,12 +1,126 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\Thrasher\\source\\repos\\2D-game-engine\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{63A74EDD-A270-4846-9FE8-720CA94786CA}|GameEngine.csproj|c:\\users\\thrasher\\source\\repos\\2d-game-engine\\renderer\\window.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{63A74EDD-A270-4846-9FE8-720CA94786CA}|GameEngine.csproj|solutionrelative:renderer\\window.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{63A74EDD-A270-4846-9FE8-720CA94786CA}|GameEngine.csproj|c:\\users\\thrasher\\source\\repos\\2d-game-engine\\renderer\\polygon2d.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{63A74EDD-A270-4846-9FE8-720CA94786CA}|GameEngine.csproj|solutionrelative:renderer\\polygon2d.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{63A74EDD-A270-4846-9FE8-720CA94786CA}|GameEngine.csproj|c:\\users\\thrasher\\source\\repos\\2d-game-engine\\dataengine\\entity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{63A74EDD-A270-4846-9FE8-720CA94786CA}|GameEngine.csproj|solutionrelative:dataengine\\entity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{63A74EDD-A270-4846-9FE8-720CA94786CA}|GameEngine.csproj|c:\\users\\thrasher\\source\\repos\\2d-game-engine\\endborne.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{63A74EDD-A270-4846-9FE8-720CA94786CA}|GameEngine.csproj|solutionrelative:endborne.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{63A74EDD-A270-4846-9FE8-720CA94786CA}|GameEngine.csproj|c:\\users\\thrasher\\source\\repos\\2d-game-engine\\dataengine\\datahandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{63A74EDD-A270-4846-9FE8-720CA94786CA}|GameEngine.csproj|solutionrelative:dataengine\\datahandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{63A74EDD-A270-4846-9FE8-720CA94786CA}|GameEngine.csproj|c:\\users\\thrasher\\source\\repos\\2d-game-engine\\renderer\\series.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{63A74EDD-A270-4846-9FE8-720CA94786CA}|GameEngine.csproj|solutionrelative:renderer\\series.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Entity.cs",
+              "DocumentMoniker": "C:\\Users\\Thrasher\\source\\repos\\2D-game-engine\\DataEngine\\Entity.cs",
+              "RelativeDocumentMoniker": "DataEngine\\Entity.cs",
+              "ToolTip": "C:\\Users\\Thrasher\\source\\repos\\2D-game-engine\\DataEngine\\Entity.cs",
+              "RelativeToolTip": "DataEngine\\Entity.cs",
+              "ViewState": "AQIAAI0AAAAAAAAAAAAiwJ0AAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-27T04:53:54.193Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Series.cs",
+              "DocumentMoniker": "C:\\Users\\Thrasher\\source\\repos\\2D-game-engine\\Renderer\\Series.cs",
+              "RelativeDocumentMoniker": "Renderer\\Series.cs",
+              "ToolTip": "C:\\Users\\Thrasher\\source\\repos\\2D-game-engine\\Renderer\\Series.cs",
+              "RelativeToolTip": "Renderer\\Series.cs",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAAABcAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-27T02:47:01.926Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "DataHandler.cs",
+              "DocumentMoniker": "C:\\Users\\Thrasher\\source\\repos\\2D-game-engine\\DataEngine\\DataHandler.cs",
+              "RelativeDocumentMoniker": "DataEngine\\DataHandler.cs",
+              "ToolTip": "C:\\Users\\Thrasher\\source\\repos\\2D-game-engine\\DataEngine\\DataHandler.cs",
+              "RelativeToolTip": "DataEngine\\DataHandler.cs",
+              "ViewState": "AQIAAB8AAAAAAAAAAAAgwFwAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-27T02:27:50.207Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Window.cs",
+              "DocumentMoniker": "C:\\Users\\Thrasher\\source\\repos\\2D-game-engine\\Renderer\\Window.cs",
+              "RelativeDocumentMoniker": "Renderer\\Window.cs",
+              "ToolTip": "C:\\Users\\Thrasher\\source\\repos\\2D-game-engine\\Renderer\\Window.cs*",
+              "RelativeToolTip": "Renderer\\Window.cs*",
+              "ViewState": "AQIAAHQBAAAAAAAAAAA7wIcBAABRAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-27T02:30:31.135Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Polygon2D.cs",
+              "DocumentMoniker": "C:\\Users\\Thrasher\\source\\repos\\2D-game-engine\\Renderer\\Polygon2D.cs",
+              "RelativeDocumentMoniker": "Renderer\\Polygon2D.cs",
+              "ToolTip": "C:\\Users\\Thrasher\\source\\repos\\2D-game-engine\\Renderer\\Polygon2D.cs",
+              "RelativeToolTip": "Renderer\\Polygon2D.cs",
+              "ViewState": "AQIAAHoAAAAAAAAAAAAUwJIAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-27T02:18:48.845Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "EndBorne.cs",
+              "DocumentMoniker": "C:\\Users\\Thrasher\\source\\repos\\2D-game-engine\\EndBorne.cs",
+              "RelativeDocumentMoniker": "EndBorne.cs",
+              "ToolTip": "C:\\Users\\Thrasher\\source\\repos\\2D-game-engine\\EndBorne.cs",
+              "RelativeToolTip": "EndBorne.cs",
+              "ViewState": "AQIAAAYAAAAAAAAAAAAAABAAAAAgAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-05-27T02:12:43.292Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
     }
   ]
 }

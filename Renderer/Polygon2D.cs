@@ -117,6 +117,51 @@ namespace GameEngine.Renderer {
 
         public Polygon2D() { }
 
+        public Polygon2D GetRelativePolygon(float XOffset, float YOffset) {
+            Polygon2D relativePolygon = new Polygon2D();
+            foreach (PointF point in Points) {
+                relativePolygon.AddPoint(new PointF(point.X + XOffset, point.Y + YOffset));
+            }
+            return relativePolygon;
+        }
+        public static Polygon2D GenerateVariableResolutionCirclePoly(int points, float scale) {
+            Polygon2D polygon = new Polygon2D();
+
+            float DegreeOfRotation = 360f / points;
+
+            // couple edge cases I dont want to think about
+            switch(points) {
+                case 0:
+                    polygon.AddPoint(0, 0);
+                    polygon.AddPoint(0, 0);
+                    return polygon;
+                case 1:
+                    polygon.AddPoint(0, 0);
+                    polygon.AddPoint(0, 0);
+                    return polygon;
+                case 2:
+                    polygon.AddPoint(ScalePoint(1), 0);
+                    polygon.AddPoint(ScalePoint(-1), 0);
+                    return polygon;
+            }
+
+            for(int i = 1; i <= points; i++) {
+                float CurrentDegreeOfRotation = DegreeOfRotation * i;
+                float CurrentDegreeOfRotationRadians = CurrentDegreeOfRotation * (float) (Math.PI / 180);
+                float x = (float) Math.Cos(CurrentDegreeOfRotationRadians);
+                float y = (float) Math.Sin(CurrentDegreeOfRotationRadians);
+
+                Console.WriteLine($"Point {i} DoR{CurrentDegreeOfRotation} x:{x}, y:{y}");
+                polygon.AddPoint(ScalePoint(x), ScalePoint(y));
+            }
+
+            float ScalePoint(float coord) {
+                return coord * scale;
+            }
+
+            return polygon;
+        }
+
         public PointF[] GetPoints() {
             PointF[] floats = new PointF[Points.Count];
             for (int i = 0; i < Points.Count; i++) {
@@ -136,6 +181,10 @@ namespace GameEngine.Renderer {
 
         public List<PointF> GetPointList() {
             return this.Points;
+        }
+
+        public void AddPoint(Double x, Double y) {
+            this.Points.Add(new PointF((float)x, (float)y));
         }
 
         public void AddPoint(PointF point) {
@@ -164,26 +213,6 @@ namespace GameEngine.Renderer {
             }
             return new Rectangle(MinX, MinY, MaxX - MinX, MaxY - MinY);
         }
-/*
-        public Boolean Intersects(Polygon2D P) {
-
-            //check to see if bounding boxs touch
-            //optimizes itterations by simplication
-            Rectangle thisRect = getBoundBox();
-            Rectangle otherRect = P.getBoundBox();
-            Boolean BoundingHit = Util.RectanglesIntersect(thisRect, otherRect);
-            
-
-            //if the bounding boxes arent hitting, then no way the polys themselves hit
-            if(!BoundingHit) {
-                return false;
-            }
-
-            foreach(PointF point in P.GetPoints()) {
-                if (this.ContainsPoint(point)) return true;
-            }
-            return false;
-        }*/
 
         public bool ContainsPoint(PointF Point) {
             bool result = false;

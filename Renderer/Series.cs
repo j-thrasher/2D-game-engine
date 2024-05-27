@@ -22,6 +22,10 @@ namespace GameEngine.Renderer {
             this.InitTime = Util.nanoTime();
         }
 
+        public bool Equals(Series s) {
+            return this.Title.Equals(s.Title);
+        }
+
         public float AveragePerSecond() {
             long now = Util.nanoTime();
             float diffSeconds = (now - InitTime) / 10000000f;
