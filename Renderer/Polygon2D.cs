@@ -151,7 +151,6 @@ namespace GameEngine.Renderer {
                 float x = (float) Math.Cos(CurrentDegreeOfRotationRadians);
                 float y = (float) Math.Sin(CurrentDegreeOfRotationRadians);
 
-                Console.WriteLine($"Point {i} DoR{CurrentDegreeOfRotation} x:{x}, y:{y}");
                 polygon.AddPoint(ScalePoint(x), ScalePoint(y));
             }
 

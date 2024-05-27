@@ -20,7 +20,7 @@ namespace GameEngine.Renderer {
         }
 
         public void UpdatePosition(Vector2D v) {
-            this.Position = v;
+            this.Position = new Vector2D(v.X , v.Y);
         }
 
         public Boolean InFOV(Vector2D Check) {
@@ -29,6 +29,12 @@ namespace GameEngine.Renderer {
 
         public Vector2D RelativePosition(Vector2D Vector) {
             return Vector2D.StaticSubtract(Vector, this.Position);
+        }
+
+        public Vector2D GetCenter() {
+            float x = (this.Size.X / 2f) - this.Position.X;
+            float y = (this.Size.Y / 2f) - this.Position.Y;
+            return new Vector2D(x, y);
         }
 
         public float XOffset() {

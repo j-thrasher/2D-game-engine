@@ -5,3 +5,6 @@
 *.vsidx
 *.sqlite
 *.suo
+bin/
+obj/
+.vs/
