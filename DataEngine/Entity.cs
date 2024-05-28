@@ -18,8 +18,6 @@ namespace GameEngine.DataEngine {
 
     public abstract class Entity {
 
-
-
         public State State;
         private Sprite2D Sprite;
         public Vector2D Position;
@@ -29,6 +27,8 @@ namespace GameEngine.DataEngine {
         public Boolean Vuln = false;
         public int VulnCoolDown = 0;
         public int VulnCoolDownEffect = 0;
+
+        private Boolean Cullable = true;
 
         public Vector2D Momentum = new Vector2D();
         public static Vector2D BaseMomentum = new Vector2D(10f, 10f);
@@ -48,9 +48,16 @@ namespace GameEngine.DataEngine {
             this.Position = Position;
             this.Tag = Tag;
             this.Sprite = Sprite;
-            this.BoundingBox = this.Sprite.GeneratedHitBox().getBoundBox();
+            if (Sprite != null) {
+                this.BoundingBox = this.Sprite.GeneratedHitBox().getBoundBox();
+            }
+
             this.Vuln = true;
             this.State = new State();
+        }
+        
+        public void SetSprite(Sprite2D Sprite) {
+            this.Sprite = Sprite;
         }
 
         public Sprite2D GetSprite() {
@@ -189,6 +196,14 @@ namespace GameEngine.DataEngine {
             int MaxX = (int)(this.BoundingBox.Width);
             int MaxY = (int)(this.BoundingBox.Height);
             return new Rectangle(MinX, MinY, MaxX, MaxY);
+        }
+
+        public Boolean IsCullable() {
+            return this.Cullable;
+        }
+
+        public void SetCullable(Boolean value) { 
+            this.Cullable = value; 
         }
     }
 }

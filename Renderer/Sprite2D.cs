@@ -33,6 +33,12 @@ namespace GameEngine.Renderer {
             this.Sprite = new Bitmap(image);
             this.HitBox = new Polygon2D(new Bitmap(image), this.XScale, this.YScale);
         }
+        
+        public Sprite2D(Bitmap bmp, int Layer, Boolean b) {
+            this.Layer = Layer;
+            this.Sprite = bmp;
+            this.HitBox = new Polygon2D(bmp, this.XScale, this.YScale);
+        }
 
         public Polygon2D GeneratedHitBox() {
             return this.HitBox;

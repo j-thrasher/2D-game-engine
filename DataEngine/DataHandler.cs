@@ -1,4 +1,5 @@
 ﻿using GameEngine.Renderer;
+using GameEngine.Renderer.Noise;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,9 +27,6 @@ namespace GameEngine.DataEngine {
             this.W.AddDebugSeries("SpriteUpdates");
             this.W.AddDebugSeries("Collisions");
 
-
-
-
             for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) {
                     Vector2D Pos = new Vector2D(i * 100, j * 100);
@@ -38,6 +36,13 @@ namespace GameEngine.DataEngine {
                     AddEntity(slime);
                 }
             }
+
+            NoiseMap2D noiseMap2D = new NoiseMap2D(new Vector2D(0, 0), 500, 500, 0.1f);
+            NoiseMap2D noiseMap2DB = new NoiseMap2D(new Vector2D(0, 0), 500, 500, 0.01f);
+            NoiseMap2D Blended = NoiseMap2D.BlendMaps(noiseMap2D, noiseMap2DB, 1f, 12f);
+            Blended.ClampValues(15);
+            Blended.SetCullable(false);
+            AddEntity(Blended);
         }
 
         private void AddEntity(Object obj) {
@@ -46,13 +51,12 @@ namespace GameEngine.DataEngine {
         }
 
         public void Register(Object obj) {
-            if (((Entity)obj).Tag.Equals("Mob")) {
+            if (obj is Entity) {
                 Entity c = (Entity) obj;
                 c.ID = Util.SHA256Hash(this.Entities.Count + Environment.TickCount + "");
                 this.Entities.Add(c.ID, c);
-                //this.W.Log($"Registered {c.Tag}: " + c.ID);
             }
-            if (((Entity)obj).Tag.Equals("Player")) {
+            if (obj is Player) {
                 Player c = ((Player)obj);
                 c.ID = Util.SHA256Hash(this.Entities.Count + Environment.TickCount + "");
                 this.Players.Add(c.ID, c);
@@ -102,9 +106,7 @@ namespace GameEngine.DataEngine {
         private void HandleCollisions() {
             Player p = GetPlayer();
             foreach(Entity s in Entities.Values.ToList()) {
-                //this.W.Log($"{p.Position.X}, {p.Position.Y} - {s.Position.X}, {s.Position.Y} | {p.Position.Distance(s.Position) < 100f}");
-
-
+               
 
 
                 if (p.Position.Distance(s.Position) < Window.SimulationDistance) {

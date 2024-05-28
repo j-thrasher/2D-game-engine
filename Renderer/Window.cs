@@ -10,6 +10,7 @@ using System.Drawing.Drawing2D;
 using GameEngine.DataEngine;
 using System.CodeDom;
 using System.Windows.Controls;
+using GameEngine.Renderer.Noise;
 
 
 
@@ -45,7 +46,7 @@ namespace GameEngine.Renderer {
         private Canvas Canvas;
         public Color Bg = Color.FromArgb(86, 147, 64);
         public Camera Cam;
-        public Boolean Debug = true;
+        public static Boolean Debug = true;
         public Boolean FullScreen = true;
         public static int TicksPerSecond = 50;
         public readonly int FramesPerSecond = 100;
@@ -63,8 +64,8 @@ namespace GameEngine.Renderer {
         public readonly float MAX_SERIES_UPDATE_TIME = 500f;
 
         //render layers
-        //private Dictionary<int, Dictionary<String, Player>> Players = new Dictionary<int, Dictionary<String, Player>>();
         private Dictionary<int, Dictionary<String, Entity>> Entities = new Dictionary<int, Dictionary<String, Entity>>();
+        private Dictionary<int, Dictionary<String, Entity>> EntitiesInSimRange = new Dictionary<int, Dictionary<String, Entity>>();
         private Dictionary<int, Dictionary<String, Sprite2D>> culledLayers = new Dictionary<int, Dictionary<String, Sprite2D>>();
         public static int PREGROUND = 0;
         public static int GROUND = 1;
@@ -251,7 +252,7 @@ namespace GameEngine.Renderer {
                 HandleGoFullScreen();
             }
             if (key.Equals("F12")) {
-                this.Debug = !this.Debug;
+                Window.Debug = !Window.Debug;
             }
             if (this.Keyboard.ContainsKey(key)) {
                 this.Keyboard[key] = true;
@@ -281,6 +282,27 @@ namespace GameEngine.Renderer {
                         beforeUpdate = now;
                         minNextNanoTime = now + millisPerTick;
                         OnUpdate();
+
+                        foreach(int Layer in Entities.Keys) {
+                            Dictionary<string, Entity> entities = Entities[Layer];
+
+                            foreach (Entity entity in entities.Values) {
+
+                                if (PlayerRef.Position.Distance(entity.Position) < Window.SimulationDistance) {
+                                    if (this.EntitiesInSimRange.ContainsKey(Layer)) {
+                                        this.EntitiesInSimRange[Layer][entity.ID] = entity;
+                                    } else {
+                                        this.EntitiesInSimRange[Layer] = new Dictionary<string, Entity>();
+                                        this.EntitiesInSimRange[Layer][entity.ID] = entity;
+                                    }
+                                } else {
+                                    if (this.EntitiesInSimRange.ContainsKey(Layer)) {
+                                        this.EntitiesInSimRange[Layer].Remove(entity.ID);
+                                    }
+                                }
+                            }
+                        }
+
                         long afterCall = Util.nanoTime();
                         this.AddDebugSeriesTiming("Update", beforeUpdate, afterCall);
                     }
@@ -343,21 +365,35 @@ namespace GameEngine.Renderer {
 
 
         public void Register(Object obj) {
-            //Console.WriteLine("Trying to register: " + obj);
-            if(((Entity)obj).Tag.Equals("Mob")) {
-                Mob c = (Mob)obj;
-                Sprite2D s = c.GetSprite();
-                if (this.Entities.ContainsKey(s.Layer)) {
-                    this.Entities[s.Layer][c.ID] = c;
-                } else {
-                    this.Entities[s.Layer] = new Dictionary<string, Entity>();
-                    this.Entities[s.Layer][c.ID] = c;
-                }
-            }
 
-            if(((Entity)obj).Tag.Equals("Player")) {
-                Player c = ((Player)obj);
-                this.PlayerRef = c;
+            if (obj is Entity) {
+                Entity entity = (Entity)obj;
+                if (entity.Tag.Equals("Mob")) {
+                    Mob c = (Mob)obj;
+                    Sprite2D s = c.GetSprite();
+                    if (this.Entities.ContainsKey(s.Layer)) {
+                        this.Entities[s.Layer][c.ID] = c;
+                    } else {
+                        this.Entities[s.Layer] = new Dictionary<string, Entity>();
+                        this.Entities[s.Layer][c.ID] = c;
+                    }
+                }
+
+                if (entity.Tag.Equals("Player")) {
+                    Player c = ((Player)obj);
+                    this.PlayerRef = c;
+                }
+
+                if (entity.Tag.Equals("NoiseMap")) {
+                    NoiseMap2D c = (NoiseMap2D)obj;
+                    Sprite2D s = c.GetSprite();
+                    if (this.Entities.ContainsKey(s.Layer)) {
+                        this.Entities[s.Layer][c.ID] = c;
+                    } else {
+                        this.Entities[s.Layer] = new Dictionary<string, Entity>();
+                        this.Entities[s.Layer][c.ID] = c;
+                    }
+                }
             }
         }
 
@@ -402,7 +438,18 @@ namespace GameEngine.Renderer {
                 float XCameraOffset = this.Cam.XOffset();
                 float YCameraOffset = this.Cam.YOffset();
                 Sprite2D sprite2D = null;
+                
                 switch (entity.Tag) {
+
+                    case ("NoiseMap"):
+                        NoiseMap2D map = (NoiseMap2D)entity;
+                        x = map.Position.X;
+                        y = map.Position.Y;
+                        x += XCameraOffset;
+                        y += YCameraOffset;
+                        sprite2D = map.GetSprite();
+                        break;
+
                     case ("Mob"):
                         Mob mob = (Mob) entity;
                         x = mob.Position.X;
@@ -449,40 +496,51 @@ namespace GameEngine.Renderer {
 
                     float RelativeRenderDistance = PlayerPosRenderRelative.Distance(EntityPosRenderRelative);
 
-                    if (RelativeRenderDistance <= Window.RenderDistance) {
+                    if (RelativeRenderDistance <= Window.RenderDistance || !entity.IsCullable()) {
                         g.DrawImage(sprite2D.Sprite, XDrawLoc, YDrawLoc, SpriteDrawWidth, SpriteDrawHeight);
-                        if (Debug) {
-                            g.DrawRectangle(DebugPen, new Rectangle((int)XDrawLoc, (int)YDrawLoc, (int)SpriteDrawWidth, (int)SpriteDrawHeight));
-                            g.DrawRectangle(DebugPen, new Rectangle((int)x - 1, (int)y - 1, 2, 2));
-                        }
                     }
+
                     if (Debug) {
                         if (RelativeRenderDistance <= Window.RenderDistance) {
+                            g.DrawRectangle(DebugPen, new Rectangle((int)x - 1, (int)y - 1, 2, 2));
                             g.DrawLine(DebugPen3, PlayerX, PlayerY, x, y);
+
+                            float RelativeHitboxRenderPosX = XCameraOffset - (SpriteDrawWidth / 2);
+                            float RelativeHitboxRenderPosY = YCameraOffset - (SpriteDrawHeight / 2);
+
+                            PointF[] hitBox = entity.GetGlobalHitbox(RelativeHitboxRenderPosX, RelativeHitboxRenderPosY).GetPoints();
+                            g.DrawPolygon(DebugPen, hitBox);
                         } 
                         if (RelativeRenderDistance > Window.RenderDistance && RelativeRenderDistance < Window.SimulationDistance) {
                             g.DrawLine(DebugPen2, PlayerX, PlayerY, x, y);
                         }
-
                     }
                 }
             }
 
+
+
+
+            for (int Layer = 0; Layer <= layerCount; Layer++) {
+
+                if(Entities.ContainsKey(Layer)) {
+                    List<Entity> LayersEntities = Entities[Layer].Values.ToList();
+                    foreach (Entity ee in LayersEntities) {
+                        switch (ee.Tag) {
+                            case ("Mob"):
+                                DrawEntity(ee);
+                                break;
+
+                            case ("NoiseMap"):
+                                DrawEntity(ee);
+                                break;
+                        }
+                    }
+                }
+            }
 
             if (this.PlayerRef != null) {
                 DrawEntity(this.PlayerRef);
-            }
-
-
-            foreach (int Layer in Entities.Keys.ToList()) {
-                List<Entity> LayersEntities = Entities[Layer].Values.ToList();
-                foreach (Entity ee in LayersEntities) {
-                    switch (ee.Tag) {
-                        case ("Mob"):
-                            DrawEntity(ee);
-                            break;
-                    }
-                }
             }
 
             if (Debug) {

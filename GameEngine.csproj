@@ -60,6 +60,8 @@
     <Compile Include="App.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Renderer\Camera.cs" />
+    <Compile Include="Renderer\Noise\Noise.cs" />
+    <Compile Include="Renderer\Noise\NoiseMap2D.cs" />
     <Compile Include="Renderer\Polygon2D.cs" />
     <Compile Include="Renderer\Series.cs" />
     <Compile Include="Renderer\Sprite2D.cs" />
