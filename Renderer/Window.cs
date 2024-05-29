@@ -49,7 +49,7 @@ namespace GameEngine.Renderer {
         public static Boolean Debug = true;
         public Boolean FullScreen = true;
         public static int TicksPerSecond = 50;
-        public readonly int FramesPerSecond = 100;
+        public readonly int FramesPerSecond = 144;
         public int DisplayRefreshRate = 0;
 
         //runtime logic
@@ -65,7 +65,6 @@ namespace GameEngine.Renderer {
 
         //render layers
         private Dictionary<int, Dictionary<String, Entity>> Entities = new Dictionary<int, Dictionary<String, Entity>>();
-        private Dictionary<int, Dictionary<String, Entity>> EntitiesInSimRange = new Dictionary<int, Dictionary<String, Entity>>();
         private Dictionary<int, Dictionary<String, Sprite2D>> culledLayers = new Dictionary<int, Dictionary<String, Sprite2D>>();
         public static int PREGROUND = 0;
         public static int GROUND = 1;
@@ -128,14 +127,13 @@ namespace GameEngine.Renderer {
             Canvas.Resize += HandleResize;
             HandleGoFullScreen();
            
-
+            Thread.Sleep(3000);
 
 
             //add the debug info to the series counter
             AddDebugSeries("Render");
             this.FrameRateSeries = new Series("Frames");
             AddDebugSeries("Update");
-            AddDebugSeries("MSPT");
 
 
             //run onload stuff
@@ -274,40 +272,17 @@ namespace GameEngine.Renderer {
             long millisPerTick = (1000 / TicksPerSecond) * 10000;
             long lastNanoTime = Util.nanoTime();
             long minNextNanoTime = lastNanoTime + millisPerTick;
-            long afterUpdate = 0L, beforeUpdate = 0L;
             while (UpdateThread.IsAlive) {
                 try {
                     long now = Util.nanoTime();
                     if (now > minNextNanoTime) {
-                        beforeUpdate = now;
+                        long beforeUpdate = now;
                         minNextNanoTime = now + millisPerTick;
                         OnUpdate();
-
-                        foreach(int Layer in Entities.Keys) {
-                            Dictionary<string, Entity> entities = Entities[Layer];
-
-                            foreach (Entity entity in entities.Values) {
-
-                                if (PlayerRef.Position.Distance(entity.Position) < Window.SimulationDistance) {
-                                    if (this.EntitiesInSimRange.ContainsKey(Layer)) {
-                                        this.EntitiesInSimRange[Layer][entity.ID] = entity;
-                                    } else {
-                                        this.EntitiesInSimRange[Layer] = new Dictionary<string, Entity>();
-                                        this.EntitiesInSimRange[Layer][entity.ID] = entity;
-                                    }
-                                } else {
-                                    if (this.EntitiesInSimRange.ContainsKey(Layer)) {
-                                        this.EntitiesInSimRange[Layer].Remove(entity.ID);
-                                    }
-                                }
-                            }
-                        }
 
                         long afterCall = Util.nanoTime();
                         this.AddDebugSeriesTiming("Update", beforeUpdate, afterCall);
                     }
-                    afterUpdate = Util.nanoTime();
-                    this.AddDebugSeriesTiming("MSPT", beforeUpdate, afterUpdate);
                     //this is to limit loops on the cpu
                     //if it didnt sleep this would run as fast as it can and kill cpu
                     //this isnt added to the MSPT/UPDATE timing in debug mode
@@ -322,13 +297,25 @@ namespace GameEngine.Renderer {
             long millisPerTick = (1000 / FramesPerSecond) * 10000;
             long lastNanoTime = Util.nanoTime();
             long minNextNanoTime = lastNanoTime + millisPerTick;
-            long afterUpdate = 0L, beforeUpdate = 0L;
-
+            long FrameBufferMax = 60;
+            long FrameBufferCurrent = 0;
             while (RenderThread.IsAlive) {
+
                 try {
+
+
                     long now = Util.nanoTime();
-                    beforeUpdate = now;
+                    long beforeUpdate = now;
                     if (now > minNextNanoTime) {
+
+                        if (FrameBufferCurrent < FrameBufferMax) {
+                            FrameBufferCurrent++;
+                            millisPerTick = (1000 / 30) * 10000;
+                        } else {
+                            millisPerTick = (1000 / FramesPerSecond) * 10000;
+                        }
+
+
                         minNextNanoTime = now + millisPerTick;
 
                         //here we have to check if the form is ready to handle the BeginInvoke call
@@ -336,21 +323,21 @@ namespace GameEngine.Renderer {
                         if (Canvas.IsHandleCreated) Canvas.BeginInvoke((MethodInvoker)delegate { Canvas.Refresh(); });
 
                         this.FrameRateSeries.Add();
-                        long afterCall = Util.nanoTime();
-                        this.AddDebugSeriesTiming("Render", beforeUpdate, afterUpdate);
                     }
-                    afterUpdate = Util.nanoTime();
-                    this.AddDebugSeriesTiming("MSPT", beforeUpdate, afterUpdate);
 
+                    long afterCall = Util.nanoTime();
+                    this.AddDebugSeriesTiming("Render", beforeUpdate, afterCall);
 
                     //this is to limit loops on the cpu
                     //if it didnt sleep this would run as fast as it can and kill cpu
                     //this isnt added to the MSPT/UPDATE timing in debug mode
-                    Thread.Sleep(new TimeSpan(1000L));
+                    Thread.Sleep(new TimeSpan(100L));
 
                 } catch (Exception e) { Console.WriteLine($"Error in RenderUpdate Loop: {e.Message}"); }
-
             }
+
+
+
         }
 
         public void DebugUpdate() {
@@ -435,8 +422,10 @@ namespace GameEngine.Renderer {
             void DrawEntity(Entity entity) {
                 float x = 0;
                 float y = 0;
-                float XCameraOffset = this.Cam.XOffset();
-                float YCameraOffset = this.Cam.YOffset();
+
+                // this camera offset if how we alter the positions of everything in the world
+                float XCameraOffset = this.Cam.XOffset() - (PlayerRef.SpriteXOffset());
+                float YCameraOffset = this.Cam.YOffset() - (PlayerRef.SpriteYOffset());
                 Sprite2D sprite2D = null;
                 
                 switch (entity.Tag) {
@@ -454,6 +443,7 @@ namespace GameEngine.Renderer {
                         Mob mob = (Mob) entity;
                         x = mob.Position.X;
                         y = mob.Position.Y;
+                        
                         x += XCameraOffset;
                         y += YCameraOffset;
                         sprite2D = mob.GetSprite();
@@ -466,13 +456,19 @@ namespace GameEngine.Renderer {
                         x += XCameraOffset;
                         y += YCameraOffset;
                         sprite2D = player.GetSprite();
+
+                        // these are the 2 circles for render distance and sim distance
                         if(Debug) {
+
+                            float CenterOfRenderCircleX = x + (PlayerRef.SpriteXOffset());
+                            float CenterOfRenderCircleY = y + (PlayerRef.SpriteXOffset());
+
                             Polygon2D polygon = Polygon2D.GenerateVariableResolutionCirclePoly(24, Window.RenderDistance);
-                            PointF[] RenderDistanceDebugPoints = polygon.GetRelativePolygon(x, y).GetPoints();
+                            PointF[] RenderDistanceDebugPoints = polygon.GetRelativePolygon(CenterOfRenderCircleX, CenterOfRenderCircleY).GetPoints();
                             g.DrawPolygon(DebugPen3, RenderDistanceDebugPoints);
 
                             Polygon2D polygon2 = Polygon2D.GenerateVariableResolutionCirclePoly(24, Window.SimulationDistance);
-                            PointF[] RenderDistanceDebugPoints2 = polygon2.GetRelativePolygon(x, y).GetPoints();
+                            PointF[] RenderDistanceDebugPoints2 = polygon2.GetRelativePolygon(CenterOfRenderCircleX, CenterOfRenderCircleY).GetPoints();
                             g.DrawPolygon(DebugPen2, RenderDistanceDebugPoints2);
                         }
                     break;
@@ -483,36 +479,34 @@ namespace GameEngine.Renderer {
                     float SpriteDrawWidth = sprite2D.Sprite.Width * sprite2D.XScale;
                     float SpriteDrawHeight = sprite2D.Sprite.Height * sprite2D.YScale;
 
-                    float XDrawLoc = x - (SpriteDrawWidth / 2);
-                    float YDrawLoc = y - (SpriteDrawHeight / 2);
+                    float CenterOfDrawX = x + (SpriteDrawWidth / 2);
+                    float CenterOfDrawY = y + (SpriteDrawHeight / 2);
 
                     float PlayerX = PlayerRef.Position.X;
                     float PlayerY = PlayerRef.Position.Y;
                     PlayerX += XCameraOffset;
                     PlayerY += YCameraOffset;
+                    PlayerX += PlayerRef.SpriteXOffset();
+                    PlayerY += PlayerRef.SpriteYOffset();
 
                     Vector2D PlayerPosRenderRelative = new Vector2D(PlayerX, PlayerY);
-                    Vector2D EntityPosRenderRelative = new Vector2D(x, y);
+                    Vector2D EntityPosRenderRelative = new Vector2D(CenterOfDrawX, CenterOfDrawY);
 
                     float RelativeRenderDistance = PlayerPosRenderRelative.Distance(EntityPosRenderRelative);
 
                     if (RelativeRenderDistance <= Window.RenderDistance || !entity.IsCullable()) {
-                        g.DrawImage(sprite2D.Sprite, XDrawLoc, YDrawLoc, SpriteDrawWidth, SpriteDrawHeight);
+                        g.DrawImage(sprite2D.Sprite, x, y, SpriteDrawWidth, SpriteDrawHeight);
                     }
 
                     if (Debug) {
                         if (RelativeRenderDistance <= Window.RenderDistance) {
-                            g.DrawRectangle(DebugPen, new Rectangle((int)x - 1, (int)y - 1, 2, 2));
-                            g.DrawLine(DebugPen3, PlayerX, PlayerY, x, y);
-
-                            float RelativeHitboxRenderPosX = XCameraOffset - (SpriteDrawWidth / 2);
-                            float RelativeHitboxRenderPosY = YCameraOffset - (SpriteDrawHeight / 2);
-
-                            PointF[] hitBox = entity.GetGlobalHitbox(RelativeHitboxRenderPosX, RelativeHitboxRenderPosY).GetPoints();
+                            g.DrawRectangle(DebugPen, new Rectangle((int)CenterOfDrawX - 1, (int)CenterOfDrawY - 1, 2, 2));
+                            g.DrawLine(DebugPen3, PlayerX, PlayerY, CenterOfDrawX, CenterOfDrawY);
+                            PointF[] hitBox = entity.GetGlobalHitbox(XCameraOffset, YCameraOffset).GetPoints();
                             g.DrawPolygon(DebugPen, hitBox);
                         } 
                         if (RelativeRenderDistance > Window.RenderDistance && RelativeRenderDistance < Window.SimulationDistance) {
-                            g.DrawLine(DebugPen2, PlayerX, PlayerY, x, y);
+                            g.DrawLine(DebugPen2, PlayerX, PlayerY, CenterOfDrawX, CenterOfDrawY);
                         }
                     }
                 }

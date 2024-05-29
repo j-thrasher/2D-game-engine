@@ -12,11 +12,9 @@ namespace GameEngine.Renderer.Noise {
         public float[,] Points = new float[0, 0];
         public float Scale = 0.0f;
 
-        public override void HandleUpdate() {
-        }
+        public override void HandleUpdate() { }
 
-        public override void HandleStateUpdate() {
-        }
+        public override void HandleStateUpdate() { }
 
         public override bool HandleCollision(CollisionEventArgs Collision) {
             return false;

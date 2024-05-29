@@ -37,12 +37,15 @@ namespace GameEngine.DataEngine {
                 }
             }
 
+            
+            /* Noise Map testing
             NoiseMap2D noiseMap2D = new NoiseMap2D(new Vector2D(0, 0), 500, 500, 0.1f);
             NoiseMap2D noiseMap2DB = new NoiseMap2D(new Vector2D(0, 0), 500, 500, 0.01f);
             NoiseMap2D Blended = NoiseMap2D.BlendMaps(noiseMap2D, noiseMap2DB, 1f, 12f);
             Blended.ClampValues(15);
             Blended.SetCullable(false);
             AddEntity(Blended);
+            */
         }
 
         private void AddEntity(Object obj) {
@@ -105,10 +108,9 @@ namespace GameEngine.DataEngine {
 
         private void HandleCollisions() {
             Player p = GetPlayer();
+
+
             foreach(Entity s in Entities.Values.ToList()) {
-               
-
-
                 if (p.Position.Distance(s.Position) < Window.SimulationDistance) {
                     Polygon2D PlayerHitBox = p.GetGlobalHitbox();
                     Polygon2D SpriteHitBox = s.GetGlobalHitbox();
